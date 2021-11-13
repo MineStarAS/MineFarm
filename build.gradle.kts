@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "kr.kro.minestar"
-version = "1.0.1"
+version = "1.0.0"
 
 
 
@@ -27,6 +27,7 @@ dependencies {
     //project_TL
 
     //MineStar
+    implementation("kr.kro.minestar:Utility-API:1.0.3")
 }
 
 tasks {
