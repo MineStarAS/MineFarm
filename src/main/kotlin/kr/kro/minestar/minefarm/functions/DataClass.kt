@@ -1,7 +1,7 @@
-package kr.kro.minestar.pack.functions
+package kr.kro.minestar.minefarm.functions
 
-import kr.kro.minestar.pack.Main
-import kr.kro.minestar.pack.data.PlayerData
+import kr.kro.minestar.minefarm.Main
+import kr.kro.minestar.minefarm.data.PlayerData
 import kr.kro.minestar.utility.toPlayer
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -16,7 +16,10 @@ class DataClass {
     fun createIslandFile(p: Player) {
         val pData = PlayerData(p)
         if (pData.islandCode > 0) "$prefix §c이미 섬이 있습니다.".toPlayer(p).let { return }
-        val folder = File(Main.pl.dataFolder.toString() + "/island")
+        val folder = File(Main.pl.dataFolder.toString() + "/island").also {
+            if (!Main.pl.dataFolder.exists()) Main.pl.dataFolder.mkdir()
+            if (!it.exists()) it.mkdir()
+        }
         val files: Array<File> = folder.listFiles()
         var i = 0
         if (folder.exists() && files.isNotEmpty()) i = files.size
@@ -31,11 +34,7 @@ class DataClass {
         data.set("ISLAND_LEADER_UUID", p.uniqueId.toString())
         data.set("ISLAND_MEMBER", member.toTypedArray())
         val world = Bukkit.getWorld("island")
-//        val pos1 = Location(world, (i * 1000).toDouble(), 0, 1000)
-//        val pos2 = Location(world, (i * 1000 + 999).toDouble(), 255, 1000 + 999)
         val center = Location(world, (i * 1000 + 500).toDouble(), 60.0, 1000 + 500.0)
-//        data.set("POS1", pos1)
-//        data.set("POS2", pos2)
         data.set("CENTER", center)
         data.set("SPAWN", center.clone().add(0.0, 1.0, 0.0))
         data.set("RADIUS", 25)
@@ -46,11 +45,11 @@ class DataClass {
         data.set("LOCK_TRAPDOOR", false)
         data.set("LOCK_FENCE_GATE", false)
         data.save(file)
-        pData.islandCode = i
+        pData.setIsCode(i)
     }
 
     fun createPlayerData(p: Player): Boolean {
-        val file = File(Main.pl.dataFolder.toString() + "/player", p.getUniqueId().toString() + ".yml")
+        val file = File(Main.pl.dataFolder.toString() + "/player", p.uniqueId.toString() + ".yml")
         val data: YamlConfiguration = YamlConfiguration.loadConfiguration(file)
         if (file.exists()) return true
         val date = Date()
@@ -58,9 +57,9 @@ class DataClass {
         val day: String = SimpleDateFormat("yyyy-MM-dd").format(date)
         data.set("FIRST_JOIN_TIME", time)
         data.set("LAST_JOIN_TIME", day)
-        data.set("NAME", p.getName())
+        data.set("NAME", p.name)
         data.set("CUSTOM_NAME", "NULL")
-        data.set("UUID", p.getUniqueId().toString())
+        data.set("UUID", p.uniqueId.toString())
         data.set("ISLAND", -1)
         data.set("MONEY", 100000)
         data.set("FLY", 3600)

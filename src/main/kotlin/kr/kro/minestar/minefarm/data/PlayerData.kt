@@ -1,6 +1,6 @@
-package kr.kro.minestar.pack.data
+package kr.kro.minestar.minefarm.data
 
-import kr.kro.minestar.pack.Main
+import kr.kro.minestar.minefarm.Main
 import net.kyori.adventure.text.Component
 import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.file.YamlConfiguration
@@ -50,5 +50,11 @@ class PlayerData {
         this.uuid = UUID.fromString(data.getString("UUID"))
         islandCode = data.getInt("ISLAND")
         farmChat = data.getBoolean("FARM_CHAT")
+    }
+
+    fun setIsCode(code: Int) {
+        data["ISLAND"] = code
+        islandCode = code
+        data.save(f)
     }
 }

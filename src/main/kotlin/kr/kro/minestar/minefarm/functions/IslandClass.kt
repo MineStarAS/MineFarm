@@ -1,35 +1,36 @@
-package kr.kro.minestar.pack.functions
+package kr.kro.minestar.minefarm.functions
 
-import kr.kro.minestar.pack.Main
-import kr.kro.minestar.pack.data.IslandData
-import kr.kro.minestar.pack.data.PlayerData
+import com.sk89q.worldedit.WorldEdit
+import com.sk89q.worldedit.bukkit.BukkitAdapter
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
+import com.sk89q.worldedit.function.operation.Operations
+import com.sk89q.worldedit.math.BlockVector3
+import com.sk89q.worldedit.session.ClipboardHolder
+import kr.kro.minestar.minefarm.Main
+import kr.kro.minestar.minefarm.data.IslandData
+import kr.kro.minestar.minefarm.data.PlayerData
+import kr.kro.minestar.utility.CreateItem
+import kr.kro.minestar.utility.Slot
 import kr.kro.minestar.utility.toPlayer
 import org.bukkit.Bukkit
-import org.bukkit.GameMode
-import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.block.Block
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
-import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.entity.EntityDamageByEntityEvent
-import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.scheduler.BukkitTask
 import java.io.File
+import java.io.FileInputStream
 import java.util.*
+
 
 class IslandClass {
     private val prefix: String = Main.prefix
     private val inviteTimer: MutableMap<Player, BukkitTask> = HashMap()
     private val invitePlayer: MutableMap<Player, Player> = HashMap()
-    private val ranking: MutableMap<Int?, Int?> = HashMap()
+    private val ranking: MutableMap<Int, Int> = HashMap()
 
     fun tpMyIsland(p: Player): Boolean {
         val pData = PlayerData(p)
-        if (pData.islandCode < 0) {
-            p.sendMessage("$prefix §c섬이 없습니다.")
-            return false
-        }
+        if (pData.islandCode < 0) "$prefix §c섬이 없습니다.".toPlayer(p).also { return false }
         val isData = IslandData(pData.islandCode)
         p.teleport(isData.spawn)
         return true
@@ -39,11 +40,45 @@ class IslandClass {
         val pData = PlayerData(p)
         if (pData.islandCode > 0) return "$prefix §c이미 섬이 있습니다.".toPlayer(p)
         DataClass().createIslandFile(p)
-        p.sendMessage(prefix + "섬으로 이동합니다.")
         val data = PlayerData(p)
         val isData = IslandData(data.islandCode)
-//        utilCode.setStructure(isData.getCenter())
-        p.teleport(isData.spawn)
+        pasteIsland(isData)
+        Bukkit.getScheduler().runTaskLater(Main.pl, Runnable {
+            "$prefix 섬으로 이동합니다.".toPlayer(p)
+            p.teleport(isData.spawn)
+        }, 20)
+    }
+
+    fun pasteIsland(islandData: IslandData) {
+        val loc = islandData.center
+        val file = File(Main.pl.dataFolder, "default.schem")
+        val format = ClipboardFormats.findByFile(file)
+        val clipboard = format!!.getReader(FileInputStream(file)).read()
+        val world = BukkitAdapter.adapt(loc.world)
+        val editSession = WorldEdit.getInstance().editSessionFactory.getEditSession(world, -1)
+        val operation = ClipboardHolder(clipboard)
+            .createPaste(editSession)
+            .to(BlockVector3.at(loc.blockX, loc.blockY, loc.blockZ))
+            .ignoreAirBlocks(false)
+            .build()
+        Operations.complete(operation)
+        editSession.flushSession()
+    }
+
+    fun test(islandData: Player) {
+        val loc = islandData.location
+        val file = File(Main.pl.dataFolder, "default.schem")
+        val format = ClipboardFormats.findByFile(file)
+        val clipboard = format!!.getReader(FileInputStream(file)).read()
+        val world = BukkitAdapter.adapt(loc.world)
+        val editSession = WorldEdit.getInstance().editSessionFactory.getEditSession(world, -1)
+        val operation = ClipboardHolder(clipboard)
+            .createPaste(editSession)
+            .to(BlockVector3.at(loc.blockX, loc.blockY, loc.blockZ))
+            .ignoreAirBlocks(false)
+            .build()
+        Operations.complete(operation)
+        editSession.flushSession()
     }
 
     fun inviteIsland(p: Player, name: String) {
@@ -131,8 +166,8 @@ class IslandClass {
         val pData = PlayerData(p)
         if (pData.islandCode < 0) "$prefix §c섬이 없습니다.".toPlayer(p)
         val isData = IslandData(pData.islandCode)
-        if (p.uniqueId.toString() == isData.leaderUUID) return "$prefix §c섬장은 섬에 다른 멤버가 있으면 나갈 수 없습니다.".toPlayer(p)
-        pData.islandCode = -1
+//        if (p.uniqueId.toString() == isData.leaderUUID) return "$prefix §c섬장은 섬에 다른 멤버가 있으면 나갈 수 없습니다.".toPlayer(p)
+        pData.setIsCode(-1)
 //        isData.removeMember(p)
         for (s in isData.member) {
             val pp: Player? = Bukkit.getPlayer(s)
@@ -176,169 +211,32 @@ class IslandClass {
         return "$prefix §a섬 채팅을 시작하였습니다.".toPlayer(p)
     }
 
-    fun interactBlockLock(e: PlayerInteractEvent) {
-        val p: Player = e.player
-        if (p.isOp && p.gameMode == GameMode.CREATIVE) return
-        if (!(((e.clickedBlock!!.type != Material.ANVIL) && (e.clickedBlock!!.type != Material.GRINDSTONE)))) {
-            e.isCancelled = true
-            return
-        }
-        val loc: Location = e.interactionPoint!!
-        if (loc.world != Bukkit.getWorld("island")) return
-        if (getIsland(loc) < 0) return
-        val isData = IslandData(getIsland(loc))
-        val pData = PlayerData(p)
-        if (pData.islandCode > 0) if (isData.member.contains(p.toString())) return
-        val bb = getLock(loc, isData)
-        if (bb[0] && bb[1]) return
-        val block: Block = e.clickedBlock!!
-        if (block.type.toString().contains("BUTTON")) if (isData.lockSetting[IslandData.LockSetting.LOCK_BUTTON]!!) return
-        if (block.type.toString().contains("PRESSURE_PLATE")) if (isData.lockSetting[IslandData.LockSetting.LOCK_PRESSURE_PLATE]!!) return
-        if (block.type.toString().contains("TRAPDOOR")) if (isData.lockSetting[IslandData.LockSetting.LOCK_TRAPDOOR]!!) return
-        if (block.type.toString().contains("DOOR")) if (isData.lockSetting[IslandData.LockSetting.LOCK_DOOR]!!) return
-        if (block.type.toString().contains("FENCE_GATE")) if (isData.lockSetting[IslandData.LockSetting.LOCK_FENCE_GATE]!!) return
-        e.isCancelled = true
-    }
-
-    fun interactPressurePlateLock(e: PlayerInteractEvent) {
-        val p: Player = e.player
-        if (p.isOp && p.gameMode == GameMode.CREATIVE) return
-        val loc: Location = p.location
-        if (loc.world != Bukkit.getWorld("island")) return
-        if (getIsland(loc) < 0) return
-        val isData = IslandData(getIsland(loc))
-        val pData = PlayerData(p)
-        if (pData.islandCode > 0) if (isData.member.contains(p.toString())) return
-        val bb = getLock(loc, isData)
-        if (bb[0] && bb[1]) return
-        val block: Block = e.clickedBlock!!
-        if (block.type.toString().contains("PRESSURE_PLATE")) if (isData.lockSetting[IslandData.LockSetting.LOCK_PRESSURE_PLATE]!!) return
-        e.isCancelled = true
-    }
-
-    fun playerDamageByPlayerLock(e: EntityDamageByEntityEvent) {
-        if (e.damager.isOp && (e.damager as Player).gameMode == GameMode.CREATIVE) return
-        if (e.entity.location.world != Bukkit.getWorld("island")) {
-            e.isCancelled = true
-            return
-        }
-        if (e.damager !is Player) return
-        if (e.entity !is Player) return
-        if (getIsland(e.entity.location) < 0) {
-            e.isCancelled = true
-            return
-        }
-        val isData = IslandData(getIsland(e.entity.location))
-        if (isData.lockSetting[IslandData.LockSetting.LOCK_PVP]!!) return
-        e.isCancelled = true
-    }
-
-    fun getIsland(loc: Location): Int {
-        if (loc.world != Bukkit.getWorld("island")) return -1
-        var x = loc.blockX
-        val z = loc.blockZ
-        var countX = 0
-        val countZ = 0
-        while (true) {
-            if (x <= 999) break
-            x -= 1000
-            ++countX
-        }
-        val f = File(Main.pl.dataFolder.toString() + "/island", "$countX.yml")
-        return if (!f.exists()) -1 else countX
-    }
-
-    fun blockBreakLock(e: BlockBreakEvent) {
-        val p: Player = e.player
-        if (p.isOp && p.gameMode == GameMode.CREATIVE) return
-        if (p.world.name != "island") {
-            e.isCancelled = true
-            return
-        }
-        val block: Block = e.block
-        val loc = block.location
-        val pData = PlayerData(p)
-        if (pData.islandCode < 0) {
-            e.isCancelled = true
-            return "$prefix §c자신의 섬에서만 가능합니다.".toPlayer(p)
-        }
-        val isData = IslandData(pData.islandCode)
-        val bb = getLock(loc, isData)
-        if (bb[0] && bb[1]) return
-        else if (!bb[0]) "$prefix §c자신의 섬에서만 가능합니다.".toPlayer(p)
-        else if (bb[0] && !bb[1]) "$prefix §c해당 위치는 확장되지 않았습니다.".toPlayer(p)
-        e.isCancelled = true
-    }
-
-    fun blockPlaceLock(e: BlockPlaceEvent) {
-        val p: Player = e.player
-        if (p.isOp && p.gameMode == GameMode.CREATIVE) return
-        if (p.world.name != "island") {
-            e.isCancelled = true
-            return
-        }
-        val block: Block = e.block
-        if (e.block.type.toString().contains("REDSTONE")) {
-            e.isCancelled = true
-            return
-        }
-        val loc = block.location
-        val pData = PlayerData(p)
-        if (pData.islandCode < 0) {
-            e.isCancelled = true
-            "$prefix §c자신의 섬에서만 가능합니다.".toPlayer(p)
-            return
-        }
-        val isData = IslandData(pData.islandCode)
-        val bb = getLock(loc, isData)
-        if (bb[0] && bb[1]) return
-        else if (!bb[0]) "$prefix §c자신의 섬에서만 가능합니다.".toPlayer(p)
-        else if (bb[0] && !bb[1]) "$prefix §c해당 위치는 확장되지 않았습니다.".toPlayer(p)
-        e.isCancelled = true
-    }
-
-    fun getLock(loc: Location, islandData: IslandData): BooleanArray {
-        var b1 = false
-        var b2 = false
-        val pos1: Location = islandData.getPos1()
-        val pos2: Location = islandData.getPos2()
-        val x1 = intArrayOf(pos1.blockX, pos2.blockX)
-        val z1 = intArrayOf(pos1.blockZ, pos2.blockZ)
-        if (x1[0] <= loc.blockX && loc.blockX <= x1[1]) if (z1[0] <= loc.blockZ && loc.blockZ <= z1[1]) b1 = true
-        val center: Location = islandData.getCenter()
-        val radius: Int = islandData.getRadius()
-        val rPos1 = center.clone().add(-radius.toDouble(), 0.0, -radius.toDouble())
-        val rPos2 = center.clone().add(radius.toDouble(), 0.0, radius.toDouble())
-        rPos1.y = 0.0
-        rPos2.y = 255.0
-        val x2 = intArrayOf(rPos1.blockX, rPos2.blockX)
-        val z2 = intArrayOf(rPos1.blockZ, rPos2.blockZ)
-        if (x2[0] <= loc.blockX && loc.blockX <= x2[1]) if (z2[0] <= loc.blockZ && loc.blockZ <= z2[1]) b2 = true
-        return booleanArrayOf(b1, b2)
-    }
-
     fun resetIslandRanking() {
-        val folder = File(Main.pl.dataFolder.toString() + "/island")
+        val folder = File(Main.pl.dataFolder.toString() + "/island").also {
+            if (!Main.pl.dataFolder.exists()) Main.pl.dataFolder.mkdir()
+            if (!it.exists()) it.mkdir()
+        }
+
         val files: Array<File> = folder.listFiles()
         for (file in files) {
-            val isData = IslandData(file.getName().replace(".yml", "").toInt())
+            val isData = IslandData(file.name.replace(".yml", "").toInt())
             ranking[isData.code] = isData.islandLevel
         }
-        rankingList = ArrayList<Map.Entry<Int?, Int?>>(ranking.entries)
-        Collections.sort<Map.Entry<Int, Int>>(rankingList, Comparator<Map.Entry<Int?, Int>> { (_, value), (_, value1) -> value1.compareTo(value) })
+        rankingList = ArrayList<Map.Entry<Int, Int>>(ranking.entries)
+        rankingList.sortWith(Comparator { (_, value), (_, value1) -> value1.compareTo(value) })
         for ((key, value) in rankingList) {
-            println(key.toString() + " : " + value)
+            println("$key : $value")
         }
     }
 
     fun getRanking(islandCode: Int): Int {
-        for (entry in rankingList!!) {
-            if (entry.key == islandCode) return rankingList!!.indexOf(entry)
+        for (entry in rankingList) {
+            if (entry.key == islandCode) return rankingList.indexOf(entry)
         }
         return -1
     }
 
-    fun getRankingItem(ranking: Int): SlotItem? {
+    fun getRankingItem(ranking: Int): Slot? {
         val material: Material
         val line: Int
         val slot: Int
@@ -395,20 +293,21 @@ class IslandClass {
             }
             else -> return null
         }
-        if (rankingList!!.toTypedArray().size <= ranking) return SlotItem(line, slot, CreateItem.vanilla(material, "§9" + (ranking + 1) + " §f위 : §8 없음"))
-        val isData = IslandData(rankingList!![ranking].key)
+
+        if (rankingList.toTypedArray().size <= ranking) return Slot(line, slot, CreateItem(material).setDisplay("§9" + (ranking + 1) + " §f위 : §8 없음").itemStack)
+        val isData = IslandData(rankingList[ranking].key)
         val lore: MutableList<String> = ArrayList()
-        lore.add("§f§7[§a섬 레벨§7] : §9" + isData.getIslandLevel())
+        lore.add("§f§7[§a섬 레벨§7] : §9" + isData.islandLevel)
         lore.add(" ")
         lore.add("§f§8::섬 멤버::")
         for (uuid in isData.member) {
             val p: OfflinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(uuid))
-            lore.add("§f§8" + p.getName())
+            lore.add("§f§8" + p.name)
         }
-        return SlotItem(line, slot, CreateItem.vanilla(material, "§9" + (ranking + 1) + " §f위 : §e" + isData.getIslandName(), lore))
+        return Slot(line, slot, CreateItem(material).setDisplay("§9" + (ranking + 1) + " §f위 : §e" + isData.name).setLore(lore).itemStack)
     }
 
     companion object {
-        var rankingList: List<Map.Entry<Int?, Int?>>? = null
+        var rankingList: MutableList<Map.Entry<Int, Int>> = mutableListOf()
     }
 }

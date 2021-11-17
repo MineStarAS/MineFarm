@@ -1,4 +1,4 @@
-package kr.kro.minestar.pack
+package kr.kro.minestar.minefarm
 
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
