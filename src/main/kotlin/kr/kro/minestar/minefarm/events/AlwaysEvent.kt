@@ -19,6 +19,8 @@ import org.bukkit.GameMode
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerChatEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.Inventory
@@ -86,4 +88,5 @@ class AlwaysEvent : Listener {
         if (players.isEmpty()) "$prefix §c근처에 다른 플레이어가 없습니다.".toPlayer(p)
         else for (pp in players) pp.spigot().sendMessage(*text)
     }
+
 }

@@ -56,5 +56,6 @@ class WorldClass {
         world.setGameRule(GameRule.SPAWN_RADIUS, 0)
         world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, true)
         world.setGameRule(GameRule.UNIVERSAL_ANGER, false)
+        world.time = 6000
     }
 }

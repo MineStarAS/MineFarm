@@ -2,6 +2,7 @@ package kr.kro.minestar.minefarm
 
 import kr.kro.minestar.minefarm.commands.IslandCMD
 import kr.kro.minestar.minefarm.events.AlwaysEvent
+import kr.kro.minestar.minefarm.events.LockEvent
 import kr.kro.minestar.minefarm.functions.IslandClass
 import kr.kro.minestar.minefarm.functions.WorldClass
 import org.bukkit.Bukkit
@@ -20,6 +21,7 @@ class Main : JavaPlugin() {
         getCommand("is")?.setExecutor(IslandCMD())
 
         Bukkit.getPluginManager().registerEvents(AlwaysEvent(), this)
+        Bukkit.getPluginManager().registerEvents(LockEvent(), this)
 
         WorldClass().createWorld()
         WorldClass().worldSetting(Bukkit.getWorld("world")!!)

@@ -57,4 +57,11 @@ class PlayerData {
         islandCode = code
         data.save(f)
     }
+
+    fun toggleChat(): Boolean {
+        data["FARM_CHAT"] = !farmChat
+        farmChat = !farmChat
+        data.save(f)
+        return farmChat
+    }
 }

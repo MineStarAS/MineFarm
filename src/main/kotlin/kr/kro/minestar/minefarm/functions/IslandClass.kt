@@ -51,23 +51,9 @@ class IslandClass {
 
     fun pasteIsland(islandData: IslandData) {
         val loc = islandData.center
-        val file = File(Main.pl.dataFolder, "default.schem")
-        val format = ClipboardFormats.findByFile(file)
-        val clipboard = format!!.getReader(FileInputStream(file)).read()
-        val world = BukkitAdapter.adapt(loc.world)
-        val editSession = WorldEdit.getInstance().editSessionFactory.getEditSession(world, -1)
-        val operation = ClipboardHolder(clipboard)
-            .createPaste(editSession)
-            .to(BlockVector3.at(loc.blockX, loc.blockY, loc.blockZ))
-            .ignoreAirBlocks(false)
-            .build()
-        Operations.complete(operation)
-        editSession.flushSession()
-    }
-
-    fun test(islandData: Player) {
-        val loc = islandData.location
-        val file = File(Main.pl.dataFolder, "default.schem")
+        val file = File(Main.pl.dataFolder, "default.schem").also {
+            if (!it.exists()) Main.pl.saveResource("default.schem", true)
+        }
         val format = ClipboardFormats.findByFile(file)
         val clipboard = format!!.getReader(FileInputStream(file)).read()
         val world = BukkitAdapter.adapt(loc.world)
@@ -164,9 +150,9 @@ class IslandClass {
 
     fun leaveIsland(p: Player) {
         val pData = PlayerData(p)
-        if (pData.islandCode < 0) "$prefix §c섬이 없습니다.".toPlayer(p)
+        if (pData.islandCode < 0) return "$prefix §c섬이 없습니다.".toPlayer(p)
         val isData = IslandData(pData.islandCode)
-//        if (p.uniqueId.toString() == isData.leaderUUID) return "$prefix §c섬장은 섬에 다른 멤버가 있으면 나갈 수 없습니다.".toPlayer(p)
+//        if (p.uniqueId.toString() == isData.leaderUUID) return "$prefix §c섬장은 나갈 수 없습니다.".toPlayer(p)
         pData.setIsCode(-1)
 //        isData.removeMember(p)
         for (s in isData.member) {
@@ -203,12 +189,8 @@ class IslandClass {
 
     fun toggleChat(p: Player) {
         val pData = PlayerData(p)
-        if (pData.farmChat) {
-            pData.farmChat = false
-            return "$prefix §c섬 채팅을 종료하였습니다.".toPlayer(p)
-        }
-        pData.farmChat = true
-        return "$prefix §a섬 채팅을 시작하였습니다.".toPlayer(p)
+        return if (pData.toggleChat()) "$prefix §a섬 채팅을 시작하였습니다.".toPlayer(p)
+        else "$prefix §c섬 채팅을 종료하였습니다.".toPlayer(p)
     }
 
     fun resetIslandRanking() {

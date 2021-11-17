@@ -1,6 +1,5 @@
 package kr.kro.minestar.minefarm.commands
 
-import kr.kro.minestar.minefarm.JavaTest
 import kr.kro.minestar.minefarm.Main
 import kr.kro.minestar.minefarm.functions.IslandClass
 import kr.kro.minestar.utility.toPlayer
@@ -24,7 +23,6 @@ class IslandCMD : CommandExecutor, TabCompleter {
         }
         if (args.isNotEmpty()) {
             when (args[0]) {
-                "test" -> clazz.test(p)
                 args0[0] -> clazz.createIsland(p).also { return false }
 
                 args0[1] -> {
