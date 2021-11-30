@@ -54,14 +54,14 @@ data class IslandData(val code: Int) {
         data.save(f)
     }
 
-    fun setLeaderUUID(uuid: UUID?) {
+    fun setLeaderUUID(uuid: UUID) {
         data["ISLAND_LEADER_UUID"] = uuid.toString()
         leaderUUID = uuid.toString()
         data.save(f)
     }
 
     fun toggleLock(lock: Lock) {
-        when (lock){
+        when (lock) {
             Lock.LOCK_PVP -> lockPVP = !lockPVP
             Lock.LOCK_BUTTON -> lockButton = !lockButton
             Lock.LOCK_PRESSURE_PLATE -> lockPressurePlate = !lockPressurePlate
@@ -72,6 +72,24 @@ data class IslandData(val code: Int) {
         data[lock.toString()] = name
         data.save(f)
     }
+
+    fun addMember(uuid: UUID) {
+        val list = data.getStringList("ISLAND_MEMBER")
+        if (list.contains(uuid.toString())) return
+        list.add(uuid.toString())
+        data["ISLAND_MEMBER"] = list
+        member = list
+        data.save(f)
+    }
+
+    fun removeMember(uuid: UUID) {
+        val list = data.getStringList("ISLAND_MEMBER")
+        list.remove(uuid.toString())
+        data["ISLAND_MEMBER"] = list
+        member = list
+        data.save(f)
+    }
+
 
     enum class Lock {
         LOCK_PVP,

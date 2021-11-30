@@ -19,8 +19,7 @@ import org.bukkit.GameMode
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerChatEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.Inventory
@@ -89,4 +88,13 @@ class AlwaysEvent : Listener {
         else for (pp in players) pp.spigot().sendMessage(*text)
     }
 
+    @EventHandler
+    fun voidDamage(e: EntityDamageEvent) {
+        val p = e.entity
+        if (p !is Player) return
+        if (e.cause != EntityDamageEvent.DamageCause.VOID) return
+        if (p.world.name != "island") return
+        if (!IslandClass().tpMyIsland(p)) p.teleport(Bukkit.getWorld("world")!!.spawnLocation)
+        e.damage = 0.0
+    }
 }

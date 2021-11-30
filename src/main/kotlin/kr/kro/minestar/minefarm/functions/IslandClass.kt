@@ -100,9 +100,9 @@ class IslandClass {
         val tPlayer: Player = invitePlayer[p]!!
         val pData = PlayerData(p)
         val ivPlayerData = PlayerData(tPlayer)
-        val ivIsData = IslandData(ivPlayerData.islandCode)
-        pData.islandCode = ivIsData.code
-//        ivIsData.addMember(p)
+        val isData = IslandData(ivPlayerData.islandCode)
+        pData.islandCode = isData.code
+        isData.addMember(p.uniqueId)
         "$prefix 초대를 수락하여 §e${tPlayer.name} §f님 섬에 가입하였습니다.".toPlayer(p)
         "$prefix 초대를 수락하여 §e${tPlayer.name} §f님 섬에 가입하였습니다.".toPlayer(tPlayer)
         Bukkit.getScheduler().runTask(Main.pl, Runnable { tpMyIsland(p) })
@@ -114,8 +114,8 @@ class IslandClass {
         inviteTimer[p]!!.cancel()
         inviteTimer.remove(p)
         val iPlayer: Player = invitePlayer[p]!!
-        p.sendMessage("$prefix §c초대를 거절하였습니다.")
-        iPlayer.sendMessage(prefix + "§e" + p.name + "§c님이 초대를 거절하었습니다.")
+        "$prefix §c초대를 거절하였습니다.".toPlayer(p)
+        "$prefix §e${p.name} §c님이 초대를 거절하었습니다.".toPlayer(iPlayer)
         invitePlayer.remove(p)
     }
 
@@ -123,17 +123,17 @@ class IslandClass {
         val pData = PlayerData(p).also { if (it.islandCode < 0) return "$prefix §c섬이 없습니다.".toPlayer(p) }
         val isData = IslandData(pData.islandCode)
         val playerUUID: String = pData.uuid.toString()
-        val targetUUID = Bukkit.getOfflinePlayer(name).uniqueId.toString()
+        val targetUUID = Bukkit.getOfflinePlayer(name).uniqueId
         if (isData.leaderUUID != playerUUID) return "$prefix §c섬장만 사용 가능합니다.".toPlayer(p)
-        if (isData.leaderUUID != targetUUID) return "$prefix §c섬장은 추방할 수 없습니다.".toPlayer(p)
-        if (!isData.member.contains(targetUUID)) return "$prefix §c섬원이 아닙니다.".toPlayer(p)
+        if (isData.leaderUUID != targetUUID.toString()) return "$prefix §c섬장은 추방할 수 없습니다.".toPlayer(p)
+        if (!isData.member.contains(targetUUID.toString())) return "$prefix §c섬원이 아닙니다.".toPlayer(p)
         val targetPlayerData = PlayerData(UUID.fromString(playerUUID))
-        val target = Bukkit.getPlayer(UUID.fromString(targetUUID))
+        val target = Bukkit.getPlayer(targetUUID)
         if (target != null) {
             targetPlayerData.islandCode = -1
             "$prefix §c섬에서 추방되었습니다.".toPlayer(target)
         } else targetPlayerData.islandCode = -999
-//        isData.removeMember(targetUUID)
+        isData.removeMember(targetUUID)
         for (s in isData.member) {
             val pp: Player? = Bukkit.getPlayer(UUID.fromString(s))
             if (pp != null) "$prefix §e${p.name} §f님이 섬에서 §c추방§f 되었습니다.".toPlayer(pp)
@@ -154,7 +154,7 @@ class IslandClass {
         val isData = IslandData(pData.islandCode)
 //        if (p.uniqueId.toString() == isData.leaderUUID) return "$prefix §c섬장은 나갈 수 없습니다.".toPlayer(p)
         pData.setIsCode(-1)
-//        isData.removeMember(p)
+        isData.removeMember(p.uniqueId)
         for (s in isData.member) {
             val pp: Player? = Bukkit.getPlayer(s)
             if (pp != null) "$prefix §e${p.name} §f님이 섬에서 나갔습니다.".toPlayer(pp)

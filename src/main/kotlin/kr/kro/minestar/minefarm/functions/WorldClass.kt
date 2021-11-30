@@ -47,7 +47,7 @@ class WorldClass {
         world.setGameRule(GameRule.MAX_COMMAND_CHAIN_LENGTH, 65536)
         world.setGameRule(GameRule.MAX_ENTITY_CRAMMING, 24)
         world.setGameRule(GameRule.MOB_GRIEFING, false)
-        world.setGameRule(GameRule.NATURAL_REGENERATION, true)
+        world.setGameRule(GameRule.NATURAL_REGENERATION, false)
         world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, 100)
         world.setGameRule(GameRule.RANDOM_TICK_SPEED, 3)
         world.setGameRule(GameRule.REDUCED_DEBUG_INFO, false)
