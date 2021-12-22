@@ -1,35 +1,25 @@
 package kr.kro.minestar.minefarm
 
 import kr.kro.minestar.minefarm.commands.IslandCMD
-import kr.kro.minestar.minefarm.events.AlwaysEvent
-import kr.kro.minestar.minefarm.events.LockEvent
-import kr.kro.minestar.minefarm.functions.IslandClass
-import kr.kro.minestar.minefarm.functions.WorldClass
-import org.bukkit.Bukkit
-import org.bukkit.GameMode
+import kr.kro.minestar.minefarm.functions.EnableClass
+import org.bukkit.World
 import org.bukkit.plugin.java.JavaPlugin
 
 class Main : JavaPlugin() {
     companion object {
         lateinit var pl: Main
         const val prefix = "§f§7[§9MineFarm§7]§f"
+        lateinit var islandWorld: World
     }
 
     override fun onEnable() {
         pl = this
         logger.info("$prefix §aEnable")
-        getCommand("is")?.setExecutor(IslandCMD())
+        getCommand("is")?.setExecutor(IslandCMD)
 
-        Bukkit.getPluginManager().registerEvents(AlwaysEvent(), this)
-        Bukkit.getPluginManager().registerEvents(LockEvent(), this)
-
-        WorldClass().createWorld()
-        WorldClass().worldSetting(Bukkit.getWorld("world")!!)
-        for (p in Bukkit.getOnlinePlayers()) if (p.gameMode != GameMode.CREATIVE) {
-            p.allowFlight = false
-            p.isFlying = false
-        }
-        IslandClass().resetIslandRanking()
+        saveResource("config.yml", false)
+        saveResource("default.schem", false)
+        EnableClass.enable()
     }
 
     override fun onDisable() {

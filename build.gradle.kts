@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.5.31"
+    kotlin("jvm") version "1.6.0"
     id("com.github.johnrengelman.shadow") version "7.1.0"
     id("org.jetbrains.dokka") version "1.5.0"
     `maven-publish`
@@ -7,8 +7,7 @@ plugins {
 
 group = "kr.kro.minestar"
 version = "1.0.0"
-
-
+val plugins = File("C:\\Users\\MineStar\\Desktop\\MC Server folder\\MCserver 1.17.1 - vanilla\\plugins")
 
 repositories {
     mavenCentral()
@@ -16,8 +15,8 @@ repositories {
     maven(url = "https://oss.sonatype.org/content/repositories/snapshots/") {
         name = "sonatype-oss-snapshots"
     }
-    maven("https://repo.projecttl.net/repository/maven-public/")
     maven("https://maven.enginehub.org/repo/")
+    maven("https://repo.projecttl.net/repository/maven-public/")
 }
 
 dependencies {
@@ -29,11 +28,12 @@ dependencies {
     //project_TL
 
     //MineStar
-    implementation("kr.kro.minestar:Utility-API:1.0.6")
+    implementation("kr.kro.minestar:Utility-API:1.5.5")
+//    implementation(files("C:\\Users\\MineStar\\Desktop\\MC Server folder\\libs\\Utility-API-1.5.5.jar"))
 }
 
 tasks {
-    compileKotlin{
+    compileKotlin {
         kotlinOptions.jvmTarget = "16"
     }
     javadoc {
@@ -63,7 +63,6 @@ tasks {
             // jar file copy
             copy {
                 from(archiveFile)
-                val plugins = File("C:\\Users\\MineStar\\Desktop\\MC Server folder\\MCserver 1.17.1 - vanilla\\plugins")
                 into(if (File(plugins, archiveFileName.get()).exists()) plugins else plugins)
             }
         }
@@ -118,4 +117,3 @@ publishing {
         }
     }
 }
-
