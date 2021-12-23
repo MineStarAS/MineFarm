@@ -1,19 +1,19 @@
 package kr.kro.minestar.minefarm.functions
 
-import kr.kro.minestar.minefarm.Main.Companion.islandWorld
+import kr.kro.minestar.minefarm.Main.Companion.farmWorld
 import org.bukkit.*
 
 object WorldClass {
 
-    fun islandWorldEnable() {
+    fun farmWorldEnable() {
         val world = createWorld()!!
         worldSetting(world)
-        islandWorld = world
+        farmWorld = world
     }
 
     fun createWorld(): World? {
-        if (Bukkit.getWorld("island") != null) return Bukkit.getWorld("island")
-        val wc = WorldCreator("island")
+        if (Bukkit.getWorld("farmWorld") != null) return Bukkit.getWorld("farmWorld")
+        val wc = WorldCreator("farmWorld")
         wc.environment(World.Environment.NORMAL)
         wc.type(WorldType.FLAT)
         wc.generatorSettings("{\"structures\": {\"structures\": {}}, \"layers\": [{\"block\": \"air\", \"height\": 1}], \"biome\":\"plains\"}")

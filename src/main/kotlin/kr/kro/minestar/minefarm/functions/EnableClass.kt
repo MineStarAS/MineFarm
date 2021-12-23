@@ -3,8 +3,8 @@ package kr.kro.minestar.minefarm.functions
 import kr.kro.minestar.minefarm.Main.Companion.pl
 import kr.kro.minestar.minefarm.functions.events.AlwaysEvent
 import kr.kro.minestar.minefarm.functions.events.LockEvent
-import kr.kro.minestar.minefarm.functions.island.IslandClass
-import kr.kro.minestar.minefarm.functions.island.IslandControl
+import kr.kro.minestar.minefarm.functions.farm.FarmClass
+import kr.kro.minestar.minefarm.functions.farm.FarmControl
 import org.bukkit.Bukkit
 
 object EnableClass {
@@ -12,7 +12,7 @@ object EnableClass {
     fun enable() {
         eventEnable()
         worldEnable()
-        islandEnable()
+        farmEnable()
         playerEnable()
     }
 
@@ -22,23 +22,24 @@ object EnableClass {
     }
 
     private fun worldEnable() {
-        WorldClass.islandWorldEnable()
+        WorldClass.farmWorldEnable()
     }
 
-    private fun islandEnable() {
-        IslandClass.loadIslands()
-        IslandClass.setLastIsland()
-        IslandClass.rankingInput()
-        IslandClass.resetIslandRanking()
-        IslandClass.loadOffset()
-        IslandControl.loadMaxMember()
+    private fun farmEnable() {
+        FarmClass.loadFarms()
+        FarmClass.setLastFarm()
+        FarmClass.rankingInput()
+        FarmClass.resetFarmRanking()
+        FarmClass.loadOffset()
+        FarmClass.loadRadius()
+        FarmControl.loadMaxMember()
     }
 
     private fun playerEnable() {
         PlayerClass.loadPlayers()
     }
 
-    fun reloadConfig(){
+    fun reloadConfig() {
         val data = pl.config
 
     }

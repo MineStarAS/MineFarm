@@ -1,16 +1,9 @@
-package kr.kro.minestar.minefarm.functions.island
+package kr.kro.minestar.minefarm.functions.farm
 
-import com.sk89q.worldedit.WorldEdit
-import com.sk89q.worldedit.bukkit.BukkitAdapter
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
-import com.sk89q.worldedit.function.operation.Operations
-import com.sk89q.worldedit.math.BlockVector3
-import com.sk89q.worldedit.session.ClipboardHolder
-import kr.kro.minestar.minefarm.Main
-import kr.kro.minestar.minefarm.Main.Companion.islandWorld
+import kr.kro.minestar.minefarm.Main.Companion.farmWorld
 import kr.kro.minestar.minefarm.Main.Companion.pl
 import kr.kro.minestar.minefarm.Main.Companion.prefix
-import kr.kro.minestar.minefarm.data.Island
+import kr.kro.minestar.minefarm.data.Farm
 import kr.kro.minestar.minefarm.functions.PlayerClass
 import kr.kro.minestar.utility.array.sortFileList
 import kr.kro.minestar.utility.bool.BooleanScript
@@ -28,37 +21,49 @@ import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import java.io.File
-import java.io.FileInputStream
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.absoluteValue
 
-object IslandClass {
+object FarmClass {
     private var first = 0
     private var second = 0
 
-    val folder = File("${pl.dataFolder}/islands")
+    val folder = File("${pl.dataFolder}/farms")
 
-    var offset = 1000
+    var offset = 107
+    var radius = 50
     fun loadOffset() {
-        offset = pl.config.getInt("islandOffset")
+        offset = YamlConfiguration.loadConfiguration(File(pl.dataFolder, "config.yml")).getInt("farmOffset")
     }
 
-    private val islandList: HashMap<String, Island> = hashMapOf()
-    fun addIsland(code: String, island: Island) {
-        islandList[code] = island
+    fun loadRadius() {
+        radius = YamlConfiguration.loadConfiguration(File(pl.dataFolder, "config.yml")).getInt("farmRadius")
     }
 
-    fun getIsland(code: String) = islandList[code]
+    private val farmList: HashMap<String, Farm> = hashMapOf()
+    fun addFarm(code: String, farm: Farm) {
+        farmList[code] = farm
+    }
 
-    fun loadIslands() {
+
+    fun deleteFarm(farm: Farm) {
+        File(folder, farm.code).delete()
+        farmList.remove(farm.code)
+    }
+
+    fun getFarm(code: String) = farmList[code]
+    fun getFarm(loc: Location) = farmList[getCode(loc)]
+
+    fun loadFarms() {
         if (!folder.exists()) folder.mkdir()
-        for (file in folder.listFiles()) Island(file)
+        for (file in folder.listFiles()) Farm(file)
     }
 
-    fun createIsland(player: Player): BooleanScript {
+    fun createFarm(player: Player): BooleanScript {
         val playerData = PlayerClass.playerData[player] ?: return false.addScript("")
         if (playerData.farmCode() != null) return false.addScript("")
-        val code = getEmptyIsland()
+        val code = getEmptyFarm()
         val file = File(folder, code)
         val data = YamlConfiguration()
 
@@ -67,13 +72,13 @@ object IslandClass {
         data["ISLAND_LEADER_UUID"] = player.uniqueId.toString()
         data["ISLAND_MEMBER"] = listOf(player.uniqueId.toString())
 
-        val split = code.remove(".yml").split(',')
+        val split = code.remove(".farm").split(',')
         val c1 = split[0].toInt() * offset.toDouble()
         val c2 = split[1].toInt() * offset.toDouble()
-        val loc = Location(islandWorld, c1, 60.0, c2)
+        val loc = Location(farmWorld, c1, 60.0, c2)
         data["CENTER"] = loc
         data["SPAWN"] = loc.clone().add(Axis.Y, 1)
-        data["RADIUS"] = pl.config.getInt("islandRadius")
+        data["RADIUS"] = pl.config.getInt("farmRadius")
 
         data["LOCK_PVP"] = true
         data["LOCK_BUTTON"] = true
@@ -82,56 +87,49 @@ object IslandClass {
         data["LOCK_TRAPDOOR"] = true
         data["LOCK_FENCE_GATE"] = true
 
+        data["RESET_TIME"] = SimpleDateFormat("yyyy-MM-dd").format(Date())
+
         data.save(file)
-        val island = Island(file)
-        islandList[island.code] = island
-        PlayerClass.playerIsland[player] = island
-        playerData.setFarm(island.code)
-        pasteIsland(island)
-        PlayerClass.tpMyIsland(player)
+        val farm = Farm(file)
+        farmList[farm.code] = farm
+        PlayerClass.playerFarm[player] = farm
+        playerData.setFarm(farm.code)
+//        pasteFarm(farm)
+        PlayerClass.tpMyFarm(player)
 
         return true.addScript("$prefix 섬을 생성 하였습니다.")
     }
 
-
-    fun pasteIsland(island: Island) {
-        val loc = island.center()
-        val file = File(pl.dataFolder, "default.schem").also {
-            if (!it.exists()) Main.pl.saveResource("default.schem", true)
-        }
-        val format = ClipboardFormats.findByFile(file)
-        val clipboard = format!!.getReader(FileInputStream(file)).read()
-        val world = BukkitAdapter.adapt(loc.world)
-        val editSession = WorldEdit.getInstance().editSessionFactory.getEditSession(world, -1)
-        val operation = ClipboardHolder(clipboard)
-            .createPaste(editSession)
-            .to(BlockVector3.at(loc.blockX, loc.blockY, loc.blockZ))
-            .ignoreAirBlocks(false)
-            .build()
-        Operations.complete(operation)
-        editSession.flushSession()
+    fun pasteFarm(farm: Farm) {
+//        val loc = farm.center()
+//        val file = File(pl.dataFolder, "default.schem").also {
+//            if (!it.exists()) Main.pl.saveResource("default.schem", true)
+//        }
+//        val format = ClipboardFormats.findByFile(file)
+//        val clipboard = format!!.getReader(FileInputStream(file)).read()
+//        val world = BukkitAdapter.adapt(loc.world)
+//        val editSession = WorldEdit.getInstance().editSessionFactory.getEditSession(world, -1)
+//        val operation = ClipboardHolder(clipboard)
+//            .createPaste(editSession)
+//            .to(BlockVector3.at(loc.blockX, loc.blockY, loc.blockZ))
+//            .ignoreAirBlocks(false)
+//            .build()
+//        Operations.complete(operation)
+//        editSession.flushSession()
     }
 
-    fun getEmptyIsland(): String {
-        if (!File("${pl.dataFolder}/islands", "$first,$second.yml").exists()) return "$first,$second.yml"
-        if (!File("${pl.dataFolder}/islands", "${-first},${-second}.yml").exists()) return "${-first},${-second}.yml"
-        if (!File("${pl.dataFolder}/islands", "${-first},$second.yml").exists()) return "${-first},$second.yml"
-        if (!File("${pl.dataFolder}/islands", "$first,${-second}.yml").exists()) return "$first,${-second}.yml"
+    fun getEmptyFarm(): String {
+        if (!File("${pl.dataFolder}/farms", "$first,$second.farm").exists()) return "$first,$second.farm"
+        if (!File("${pl.dataFolder}/farms", "${-first},${-second}.farm").exists()) return "${-first},${-second}.farm"
+        if (!File("${pl.dataFolder}/farms", "${-first},$second.farm").exists()) return "${-first},$second.farm"
+        if (!File("${pl.dataFolder}/farms", "$first,${-second}.farm").exists()) return "$first,${-second}.farm"
         ++first
         --second
         if (second < 0) {
             first = 0
             second = getLastSecond()
         }
-        return getEmptyIsland()
-    }
-
-    fun setLastIsland() {
-        val files = folder.listFiles().sortFileList()
-        if (files.isEmpty()) return
-        val split = files[files.size - 1].name.remove(".yml").split(',')
-        first = split[0].toInt().absoluteValue
-        second = split[1].toInt().absoluteValue
+        return getEmptyFarm()
     }
 
     fun getLastSecond(): Int {
@@ -141,21 +139,29 @@ object IslandClass {
         for (file in files) list.add(file.name)
         val string = list.toString()
         while (true) {
-            if (!string.contains("$int.yml")) break
+            if (!string.contains("$int.farm")) break
             ++int
         }
         return int
     }
 
+    fun setLastFarm() {
+        val files = folder.listFiles().sortFileList()
+        if (files.isEmpty()) return
+        val split = files[files.size - 1].name.remove(".farm").split(',')
+        first = split[0].toInt().absoluteValue
+        second = split[1].toInt().absoluteValue
+    }
+
     fun getCode(loc: Location): String {
-        if (loc.world != islandWorld) return ""
+        if (loc.world != farmWorld) return ""
 
         val x = loc.blockX
         val z = loc.blockZ
         val countX = x / offset
         val countZ = z / offset
 
-        return "$countX,$countZ.yml"
+        return "$countX,$countZ.farm"
     }
 
     /**
@@ -166,10 +172,10 @@ object IslandClass {
 
     fun rankingInput() {
         ranking = hashMapOf()
-        for (island in islandList.values) ranking[island.code] = island.level()
+        for (farm in farmList.values) ranking[farm.code] = farm.level()
     }
 
-    fun resetIslandRanking() {
+    fun resetFarmRanking() {
         rankingList = ArrayList<Map.Entry<String, Int>>(ranking.entries)
         rankingList.sortWith(Comparator { (_, value), (_, value1) -> value1.compareTo(value) })
         for ((key, value) in rankingList) "$key : $value".toServer()
@@ -240,15 +246,15 @@ object IslandClass {
         }
 
         if (rankingList.toTypedArray().size <= ranking) return Slot(line, slot, material.item().setDisplay("§9${ranking + 1} §f위 : §8 없음"))
-        val island = getIsland(rankingList[ranking].key)!!
+        val farm = getFarm(rankingList[ranking].key)!!
         val lore: MutableList<String> = ArrayList()
-        lore.add("§f§7[§a섬 레벨§7] : §9" + island.level())
+        lore.add("§f§7[§a섬 레벨§7] : §9" + farm.level())
         lore.add(" ")
         lore.add("§f§8::섬 멤버::")
-        for (uuid in island.member()) {
+        for (uuid in farm.member()) {
             val p = Bukkit.getOfflinePlayer(UUID.fromString(uuid))
             lore.add("§f§8" + p.name)
         }
-        return Slot(line, slot, material.item().setDisplay("§9${ranking + 1} §f위 : §e${island.name()}").also { it.lore = lore })
+        return Slot(line, slot, material.item().setDisplay("§9${ranking + 1} §f위 : §e${farm.name()}").also { it.lore = lore })
     }
 }

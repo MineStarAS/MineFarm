@@ -1,7 +1,7 @@
 package kr.kro.minestar.minefarm.functions
 
 import kr.kro.minestar.minefarm.Main.Companion.prefix
-import kr.kro.minestar.minefarm.data.Island
+import kr.kro.minestar.minefarm.data.Farm
 import kr.kro.minestar.minefarm.data.PlayerData
 import kr.kro.minestar.utility.string.toPlayer
 import org.bukkit.Bukkit
@@ -9,16 +9,16 @@ import org.bukkit.entity.Player
 
 object PlayerClass {
     val playerData: HashMap<Player, PlayerData> = hashMapOf()
-    val playerIsland: HashMap<Player, Island> = hashMapOf()
+    val playerFarm: HashMap<Player, Farm> = hashMapOf()
 
     fun loadPlayers() {
         for (player in Bukkit.getOnlinePlayers()) PlayerData(player)
     }
 
-    fun tpMyIsland(player: Player): Boolean {
-        val island = playerIsland[player]
-        island ?: "$prefix §c섬이 없습니다.".toPlayer(player).also { return false }
-        return player.teleport(island!!.spawn())
+    fun tpMyFarm(player: Player): Boolean {
+        val farm = playerFarm[player]
+        farm ?: "$prefix §c섬이 없습니다.".toPlayer(player).also { return false }
+        return player.teleport(farm!!.spawn())
     }
 
     fun toggleChat(player: Player) {

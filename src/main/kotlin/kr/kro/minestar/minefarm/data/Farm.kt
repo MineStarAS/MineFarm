@@ -1,24 +1,24 @@
 package kr.kro.minestar.minefarm.data
 
 import kr.kro.minestar.minefarm.Main.Companion.pl
-import kr.kro.minestar.minefarm.functions.island.IslandClass
+import kr.kro.minestar.minefarm.functions.farm.FarmClass
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
-class Island(file: File) {
+class Farm(file: File) {
     val code: String = file.name
     override fun toString(): String = code
 
-    private var islandLevel: Int
+    private var farmLevel: Int
     private var name: String
     private var leaderUUID: String
     private var member: List<String>
 
     private val center: Location
     private var spawn: Location
-    private var radius: Int
 
     private var lockPVP: Boolean
     private var lockButton: Boolean
@@ -27,14 +27,15 @@ class Island(file: File) {
     private var lockTrapdoor: Boolean
     private var lockFenceGate: Boolean
 
-    fun level() = islandLevel
+    private var resetTime: String
+
+    fun level() = farmLevel
     fun name() = name
     fun leaderUUID() = leaderUUID
     fun member() = member
 
     fun center() = center
     fun spawn() = spawn
-    fun radius() = radius
 
     fun getLock(lock: Lock): Boolean {
         return when (lock) {
@@ -50,12 +51,11 @@ class Island(file: File) {
     init {
         val data = YamlConfiguration.loadConfiguration(file)
         name = data.getString("ISLAND_NAME") ?: "null"
-        islandLevel = data.getInt("ISLAND_LEVEL")
+        farmLevel = data.getInt("ISLAND_LEVEL")
         leaderUUID = data.getString("ISLAND_LEADER_UUID") ?: "null"
         member = data.getStringList("ISLAND_MEMBER")
         center = data.getLocation("CENTER")!!
         spawn = data.getLocation("SPAWN")!!
-        radius = data.getInt("RADIUS")
 
         lockPVP = data.getBoolean("LOCK_PVP")
         lockButton = data.getBoolean("LOCK_BUTTON")
@@ -64,13 +64,15 @@ class Island(file: File) {
         lockTrapdoor = data.getBoolean("LOCK_TRAPDOOR")
         lockFenceGate = data.getBoolean("LOCK_FENCE_GATE")
 
-        IslandClass.getIsland(code) ?: IslandClass.addIsland(code, this)
+        resetTime = data.getString("RESET_TIME") ?: "null"
+
+        FarmClass.getFarm(code) ?: FarmClass.addFarm(code, this)
     }
 
-    fun file(): File = File("${pl.dataFolder}/islands", code)
+    fun file(): File = File("${pl.dataFolder}/farms", code)
     fun data(): YamlConfiguration = YamlConfiguration.loadConfiguration(file())
 
-    fun setIslandName(name: String) {
+    fun setFarmName(name: String) {
         val data = data()
         data["NAME"] = name
         this.name = name
@@ -79,8 +81,8 @@ class Island(file: File) {
 
     fun addLevel(value: Int) {
         val data = data()
-        data["ISLAND_LEVEL"] = islandLevel + value
-        islandLevel = data.getInt("ISLAND_LEVEL")
+        data["ISLAND_LEVEL"] = farmLevel + value
+        farmLevel = data.getInt("ISLAND_LEVEL")
         data.save(file())
     }
 
@@ -123,6 +125,19 @@ class Island(file: File) {
         data["ISLAND_MEMBER"] = list
         member = list
         data.save(file())
+        return true
+    }
+
+    fun canReset(): Boolean {
+        val day = SimpleDateFormat("yyyy-MM-dd").format(Date())
+        if (resetTime == day) return false
+        return true
+    }
+
+    fun setResetTime(): Boolean {
+        val day = SimpleDateFormat("yyyy-MM-dd").format(Date())
+        if (resetTime == day) return false
+        resetTime = day
         return true
     }
 }

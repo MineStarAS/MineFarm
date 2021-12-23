@@ -1,9 +1,8 @@
 package kr.kro.minestar.minefarm.data
 
-import kr.kro.minestar.minefarm.Main
 import kr.kro.minestar.minefarm.Main.Companion.pl
 import kr.kro.minestar.minefarm.functions.PlayerClass
-import kr.kro.minestar.minefarm.functions.island.IslandClass
+import kr.kro.minestar.minefarm.functions.farm.FarmClass
 import org.bukkit.OfflinePlayer
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
@@ -29,7 +28,7 @@ class PlayerData {
     fun farmChat() = farmChat
 
     constructor(player: Player) {
-        val file = File("${pl.dataFolder}/player", "${player.uniqueId}.yml")
+        val file = File("${pl.dataFolder}/player", "${player.uniqueId}.player")
         val data = YamlConfiguration.loadConfiguration(file)
 
         if (!file.exists()) {
@@ -54,11 +53,11 @@ class PlayerData {
         farmChat = data.getBoolean("FARM_CHAT")
         data.save(file)
         PlayerClass.playerData[player] = this
-        islandCheck(player)
+        farmCheck(player)
     }
 
     constructor(player: OfflinePlayer) {
-        val file = File("${pl.dataFolder}/player", "${player.uniqueId}.yml")
+        val file = File("${pl.dataFolder}/player", "${player.uniqueId}.player")
         val data = YamlConfiguration.loadConfiguration(file)
 
         name = data.getString("NAME")
@@ -70,15 +69,15 @@ class PlayerData {
         data.save(file)
     }
 
-    fun islandCheck(player: Player) {
+    fun farmCheck(player: Player) {
         farmCode ?: return
-        val island = IslandClass.getIsland(farmCode!!) ?: return setFarm(null)
-        if (!island.member().contains(player.uniqueId.toString())) return setFarm(null)
-        PlayerClass.playerIsland[player] = island
+        val farm = FarmClass.getFarm(farmCode!!) ?: return setFarm(null)
+        if (!farm.member().contains(player.uniqueId.toString())) return setFarm(null)
+        PlayerClass.playerFarm[player] = farm
     }
 
     fun setFarm(code: String?) {
-        val file = File("${pl.dataFolder}/player", "$uuid.yml")
+        val file = File("${pl.dataFolder}/player", "$uuid.player")
         val data = YamlConfiguration.loadConfiguration(file)
         farmCode = code
         data["FARM_CODE"] = code
@@ -86,7 +85,7 @@ class PlayerData {
     }
 
     fun toggleChat(): Boolean {
-        val file = File("${pl.dataFolder}/player", "$uuid.yml")
+        val file = File("${pl.dataFolder}/player", "$uuid.player")
         val data = YamlConfiguration.loadConfiguration(file)
         data["FARM_CHAT"] = !farmChat
         farmChat = !farmChat

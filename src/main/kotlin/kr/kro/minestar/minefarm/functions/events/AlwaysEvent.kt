@@ -2,11 +2,10 @@
 
 package kr.kro.minestar.minefarm.functions.events
 
-import kr.kro.minestar.minefarm.Main.Companion.islandWorld
+import kr.kro.minestar.minefarm.Main.Companion.farmWorld
 import kr.kro.minestar.minefarm.Main.Companion.prefix
 import kr.kro.minestar.minefarm.data.PlayerData
 import kr.kro.minestar.minefarm.functions.PlayerClass
-import kr.kro.minestar.minefarm.functions.island.IslandControl
 import kr.kro.minestar.utility.string.toPlayer
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -30,7 +29,7 @@ object AlwaysEvent : Listener {
         val playerData = PlayerClass.playerData[player] ?: return PlayerClass.kickNullPlayerData(player)
         if (!playerData.farmChat()) return
         e.isCancelled = true
-        val isLand = PlayerClass.playerIsland[player] ?: return "$prefix §c팜이 없습니다.".toPlayer(player)
+        val isLand = PlayerClass.playerFarm[player] ?: return "$prefix §c팜이 없습니다.".toPlayer(player)
 
         val msg = "§f§a[팜채팅] ${player.name} : ${e.message}"
 
@@ -46,8 +45,8 @@ object AlwaysEvent : Listener {
         val p = e.entity
         if (p !is Player) return
         if (e.cause != EntityDamageEvent.DamageCause.VOID) return
-        if (p.world != islandWorld) return
-        if (!PlayerClass.tpMyIsland(p)) p.teleport(Bukkit.getWorld("world")!!.spawnLocation)
+        if (p.world != farmWorld) return
+        if (!PlayerClass.tpMyFarm(p)) p.teleport(Bukkit.getWorlds().first().spawnLocation)
         e.damage = 0.0
     }
 }
