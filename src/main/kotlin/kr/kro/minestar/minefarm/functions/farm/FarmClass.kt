@@ -45,6 +45,7 @@ object FarmClass {
     fun addFarm(code: String, farm: Farm) {
         farmList[code] = farm
     }
+    fun farmList() = farmList.values
 
 
     fun deleteFarm(farm: Farm) {
@@ -162,99 +163,5 @@ object FarmClass {
         val countZ = z / offset
 
         return "$countX,$countZ.farm"
-    }
-
-    /**
-     * Ranking
-     */
-    private var ranking: HashMap<String, Int> = hashMapOf()
-    private var rankingList: MutableList<Map.Entry<String, Int>> = mutableListOf()
-
-    fun rankingInput() {
-        ranking = hashMapOf()
-        for (farm in farmList.values) ranking[farm.code] = farm.level()
-    }
-
-    fun resetFarmRanking() {
-        rankingList = ArrayList<Map.Entry<String, Int>>(ranking.entries)
-        rankingList.sortWith(Comparator { (_, value), (_, value1) -> value1.compareTo(value) })
-        for ((key, value) in rankingList) "$key : $value".toServer()
-
-    }
-
-    fun getRanking(code: String): Int? {
-        for (map in rankingList) if (map.key == code) return rankingList.indexOf(map)
-        return null
-    }
-
-    fun getRankingItem(ranking: Int): Slot? {
-        val material: Material
-        val line: Int
-        val slot: Int
-        when (ranking) {
-            0 -> {
-                material = Material.GOLD_INGOT
-                line = 0
-                slot = 4
-            }
-            1 -> {
-                material = Material.IRON_INGOT
-                line = 1
-                slot = 2
-            }
-            2 -> {
-                material = Material.COPPER_INGOT
-                line = 1
-                slot = 6
-            }
-            3 -> {
-                material = Material.RED_DYE
-                line = 2
-                slot = 1
-            }
-            4 -> {
-                material = Material.ORANGE_DYE
-                line = 2
-                slot = 2
-            }
-            5 -> {
-                material = Material.YELLOW_DYE
-                line = 2
-                slot = 3
-            }
-            6 -> {
-                material = Material.GREEN_DYE
-                line = 2
-                slot = 4
-            }
-            7 -> {
-                material = Material.BLUE_DYE
-                line = 2
-                slot = 5
-            }
-            8 -> {
-                material = Material.CYAN_DYE
-                line = 2
-                slot = 6
-            }
-            9 -> {
-                material = Material.PURPLE_DYE
-                line = 2
-                slot = 7
-            }
-            else -> return null
-        }
-
-        if (rankingList.toTypedArray().size <= ranking) return Slot(line, slot, material.item().setDisplay("§9${ranking + 1} §f위 : §8 없음"))
-        val farm = getFarm(rankingList[ranking].key)!!
-        val lore: MutableList<String> = ArrayList()
-        lore.add("§f§7[§a섬 레벨§7] : §9" + farm.level())
-        lore.add(" ")
-        lore.add("§f§8::섬 멤버::")
-        for (uuid in farm.member()) {
-            val p = Bukkit.getOfflinePlayer(UUID.fromString(uuid))
-            lore.add("§f§8" + p.name)
-        }
-        return Slot(line, slot, material.item().setDisplay("§9${ranking + 1} §f위 : §e${farm.name()}").also { it.lore = lore })
     }
 }

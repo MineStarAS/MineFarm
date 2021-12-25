@@ -3,13 +3,12 @@ package kr.kro.minestar.minefarm.functions.farm
 import kr.kro.minestar.minefarm.Main
 import kr.kro.minestar.minefarm.Main.Companion.pl
 import kr.kro.minestar.minefarm.Main.Companion.prefix
+import kr.kro.minestar.minefarm.data.Lock
 import kr.kro.minestar.minefarm.data.PlayerData
 import kr.kro.minestar.minefarm.functions.PlayerClass
 import kr.kro.minestar.utility.bool.BooleanScript
 import kr.kro.minestar.utility.bool.addScript
 import kr.kro.minestar.utility.string.toPlayer
-import kr.kro.minestar.utility.string.toServer
-import kr.kro.minestar.utility.time.ElapsedTime
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -180,7 +179,6 @@ object FarmControl {
         val x2 = center.blockX + FarmClass.radius
         val z1 = center.blockZ - FarmClass.radius
         val z2 = center.blockZ + FarmClass.radius
-        val et = ElapsedTime()
         for (y in 1..255) {
             val material: Material = when (y) {
                 in 1..56 -> Material.STONE
@@ -190,12 +188,40 @@ object FarmControl {
             }
             for (x in x1..x2)
                 for (z in z1..z2) {
-                val block = Location(world, x.toDouble(), y.toDouble(), z.toDouble()).block
-                block.type = material
-            }
+                    val block = Location(world, x.toDouble(), y.toDouble(), z.toDouble()).block
+                    block.type = material
+                }
         }
-        et.toSecond().toServer()
         return true.addScript("$prefix §a정상적으로 초기화 되었습니다.")
+    }
+
+    fun farmSetLock(player: Player, lock: Lock): BooleanScript {
+        val farm = PlayerClass.playerFarm[player]
+        farm ?: return false.addScript("$prefix §c섬이 없습니다.")
+        if (farm.leaderUUID() != player.uniqueId.toString()) return false.addScript("$prefix §c섬장만 사용 가능합니다.")
+        farm.toggleLock(lock)
+        val c = if (farm.getLock(lock)) "§aTRUE"
+        else "§cFALSE"
+        return true.addScript("$prefix 팜의 §e${lock.ko} §f설정이 $c §f로 설정 되었습니다.")
+    }
+
+    fun farmSetLock(player: Player, lockName: String): BooleanScript {
+        val farm = PlayerClass.playerFarm[player]
+        farm ?: return false.addScript("$prefix §c섬이 없습니다.")
+        if (farm.leaderUUID() != player.uniqueId.toString()) return false.addScript("$prefix §c섬장만 사용 가능합니다.")
+        val lock: Lock = when (lockName) {
+            "pvp" -> Lock.PVP
+            "button" -> Lock.BUTTON
+            "plate" -> Lock.PRESSURE_PLATE
+            "door" -> Lock.DOOR
+            "trapdoor" -> Lock.TRAPDOOR
+            "fencegate" -> Lock.FENCE_GATE
+            else -> return false.addScript("$prefix §c알 수 없는 설정입니다.")
+        }
+        farm.toggleLock(lock)
+        val c = if (farm.getLock(lock)) "§aTRUE"
+        else "§cFALSE"
+        return true.addScript("$prefix 팜의 §e${lock.ko} §f설정이 $c §f로 설정 되었습니다.")
     }
 
     fun getMembers(player: Player) {
@@ -203,20 +229,17 @@ object FarmControl {
         farm ?: return "$prefix §c섬이 없습니다.".toPlayer(player)
         "§e::섬 멤버 리스트::".toPlayer(player)
         " ".toPlayer(player)
-        for (s in farm.member())
-            if (s == farm.leaderUUID()) "${Bukkit.getOfflinePlayer(s).name} - 섬장".toPlayer(player)
-            else Bukkit.getOfflinePlayer(s).name!!.toPlayer(player)
+        "${Bukkit.getOfflinePlayer(UUID.fromString(farm.leaderUUID())).name} - 섬장".toPlayer(player)
+        for (s in farm.member()) if (s != farm.leaderUUID()) Bukkit.getOfflinePlayer(UUID.fromString(s)).name!!.toPlayer(player)
     }
 
-    fun getMembers(p: Player, name: String) {
-        val target = Bukkit.getPlayer(name) ?: return "$prefix §c존재하지 않는 플레이어 이거나, 접속 중이지 않은 플레이어입니다.".toPlayer(p)
+    fun getMembers(player: Player, name: String) {
+        val target = Bukkit.getPlayer(name) ?: return "$prefix §c존재하지 않는 플레이어 이거나, 접속 중이지 않은 플레이어입니다.".toPlayer(player)
         val farm = PlayerClass.playerFarm[target]
-        farm ?: return "$prefix §c섬이 없습니다.".toPlayer(p)
-        "§e::섬 멤버 리스트::".toPlayer(p)
-        " ".toPlayer(p)
-        for (s in farm.member()) {
-            if (s == farm.leaderUUID()) "${Bukkit.getOfflinePlayer(s).name} - 섬장".toPlayer(p)
-            else Bukkit.getOfflinePlayer(s).name!!.toPlayer(p)
-        }
+        farm ?: return "$prefix §c섬이 없습니다.".toPlayer(player)
+        "§e::섬 멤버 리스트::".toPlayer(player)
+        " ".toPlayer(player)
+        "${Bukkit.getOfflinePlayer(UUID.fromString(farm.leaderUUID())).name} - 섬장".toPlayer(player)
+        for (s in farm.member()) if (s != farm.leaderUUID()) Bukkit.getOfflinePlayer(UUID.fromString(s)).name!!.toPlayer(player)
     }
 }

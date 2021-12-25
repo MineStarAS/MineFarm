@@ -5,6 +5,7 @@ import kr.kro.minestar.minefarm.functions.events.AlwaysEvent
 import kr.kro.minestar.minefarm.functions.events.LockEvent
 import kr.kro.minestar.minefarm.functions.farm.FarmClass
 import kr.kro.minestar.minefarm.functions.farm.FarmControl
+import kr.kro.minestar.minefarm.functions.farm.FarmRank
 import org.bukkit.Bukkit
 
 object EnableClass {
@@ -13,6 +14,7 @@ object EnableClass {
         eventEnable()
         worldEnable()
         farmEnable()
+        farmRankEnable()
         playerEnable()
     }
 
@@ -28,11 +30,15 @@ object EnableClass {
     private fun farmEnable() {
         FarmClass.loadFarms()
         FarmClass.setLastFarm()
-        FarmClass.rankingInput()
-        FarmClass.resetFarmRanking()
         FarmClass.loadOffset()
         FarmClass.loadRadius()
         FarmControl.loadMaxMember()
+    }
+
+    private fun farmRankEnable(){
+        FarmRank.init()
+        FarmRank.rankingInput()
+        FarmRank.resetFarmRanking()
     }
 
     private fun playerEnable() {
