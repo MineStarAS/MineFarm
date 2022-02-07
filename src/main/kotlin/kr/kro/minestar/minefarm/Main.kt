@@ -2,6 +2,8 @@ package kr.kro.minestar.minefarm
 
 import kr.kro.minestar.minefarm.commands.FarmCMD
 import kr.kro.minestar.minefarm.functions.EnableClass
+import kr.kro.minestar.minefarm.functions.WorldClass
+import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
@@ -21,6 +23,8 @@ class Main : JavaPlugin() {
         saveResource("config.yml", false)
         saveResource("default.schem", false)
         EnableClass.enable()
+
+        for (world in Bukkit.getWorlds()) WorldClass.worldSetting(world)
     }
 
     override fun onDisable() {

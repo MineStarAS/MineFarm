@@ -8,16 +8,10 @@ import kr.kro.minestar.minefarm.functions.PlayerClass
 import kr.kro.minestar.utility.array.sortFileList
 import kr.kro.minestar.utility.bool.BooleanScript
 import kr.kro.minestar.utility.bool.addScript
-import kr.kro.minestar.utility.item.Slot
-import kr.kro.minestar.utility.item.setDisplay
 import kr.kro.minestar.utility.location.Axis
-import kr.kro.minestar.utility.location.add
-import kr.kro.minestar.utility.material.item
+import kr.kro.minestar.utility.location.addAxis
 import kr.kro.minestar.utility.string.remove
-import kr.kro.minestar.utility.string.toServer
-import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import java.io.File
@@ -45,6 +39,7 @@ object FarmClass {
     fun addFarm(code: String, farm: Farm) {
         farmList[code] = farm
     }
+
     fun farmList() = farmList.values
 
 
@@ -78,7 +73,7 @@ object FarmClass {
         val c2 = split[1].toInt() * offset.toDouble()
         val loc = Location(farmWorld, c1, 60.0, c2)
         data["CENTER"] = loc
-        data["SPAWN"] = loc.clone().add(Axis.Y, 1)
+        data["SPAWN"] = loc.clone().addAxis(Axis.Y, 1)
         data["RADIUS"] = pl.config.getInt("farmRadius")
 
         data["LOCK_PVP"] = true

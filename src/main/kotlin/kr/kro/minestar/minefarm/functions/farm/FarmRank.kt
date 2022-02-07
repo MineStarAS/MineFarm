@@ -5,7 +5,7 @@ import kr.kro.minestar.minefarm.data.Farm
 import kr.kro.minestar.utility.item.Slot
 import kr.kro.minestar.utility.item.addLore
 import kr.kro.minestar.utility.item.clearLore
-import kr.kro.minestar.utility.item.setDisplay
+import kr.kro.minestar.utility.item.display
 import kr.kro.minestar.utility.material.item
 import kr.kro.minestar.utility.string.toServer
 import org.bukkit.Bukkit
@@ -61,7 +61,7 @@ object FarmRank : Listener {
         player.openInventory(gui)
     }
 
-    fun displaying () {
+    fun displaying() {
         gui.clear()
         for (slot in slots) gui.setItem(slot.get, slot.item)
     }
@@ -80,7 +80,7 @@ object FarmRank : Listener {
                 2 -> "§a$rank 위 : $farmName"
                 else -> "§9$rank 위 : $farmName"
             }
-            item.setDisplay(display)
+            item.display(display)
             item.clearLore()
             if (farm != null) {
                 item.addLore(" ")
@@ -91,6 +91,6 @@ object FarmRank : Listener {
                 for (uuid in farm.member()) if (uuid != farm.leaderUUID()) item.addLore(Bukkit.getOfflinePlayer(UUID.fromString(uuid)).name!!)
             }
         }
-        displaying ()
+        displaying()
     }
 }

@@ -6,8 +6,8 @@ plugins {
 }
 
 group = "kr.kro.minestar"
-version = "1.0.1"
-val plugins = File("C:\\Users\\MineStar\\Desktop\\MC Server folder\\MCserver 1.17.1 - vanilla\\plugins")
+version = "1.0.0"
+val plugins = File("C:\\Users\\MineStar\\Desktop\\MC Server folder\\MCserver 1.17.1 - MineFarm\\plugins")
 
 repositories {
     mavenCentral()
@@ -28,7 +28,7 @@ dependencies {
     //project_TL
 
     //MineStar
-    implementation("kr.kro.minestar:Utility-API:1.5.7")
+    implementation("kr.kro.minestar:Utility-API:1.5.18")
 //    implementation(files("C:\\Users\\MineStar\\Desktop\\MC Server folder\\libs\\Utility-API-1.5.5.jar"))
 
     //other
