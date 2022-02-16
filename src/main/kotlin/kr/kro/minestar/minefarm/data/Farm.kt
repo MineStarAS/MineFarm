@@ -70,6 +70,7 @@ class Farm(file: File) {
     }
 
     fun file(): File = File("${pl.dataFolder}/farms", code)
+
     fun data(): YamlConfiguration = YamlConfiguration.loadConfiguration(file())
 
     fun setFarmName(name: String) {

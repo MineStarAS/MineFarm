@@ -6,7 +6,6 @@ import kr.kro.minestar.minefarm.functions.farm.FarmClass
 import kr.kro.minestar.minefarm.functions.farm.FarmControl
 import kr.kro.minestar.minefarm.functions.farm.FarmRank
 import kr.kro.minestar.utility.string.toPlayer
-import kr.kro.minestar.utility.string.toServer
 import kr.kro.minestar.utility.unit.setFalse
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -17,7 +16,7 @@ import org.bukkit.entity.Player
 import java.util.*
 
 object FarmCMD : CommandExecutor, TabCompleter {
-    private enum class Arg { create, invite, accept, reject, kick, leave, member, chat, givehost, reset, lock, rank }
+    private enum class Arg { create, invite, accept, reject, kick, leave, member, givehost, reset, lock, rank }
 
     private val lock = listOf("pvp", "button", "plate", "door", "trapdoor", "fencegate")
     override fun onCommand(player: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
@@ -27,9 +26,6 @@ object FarmCMD : CommandExecutor, TabCompleter {
             return false
         }
         when (args.first()) {
-            "test" -> {
-                FarmClass.offset.toString().toServer()
-            }
             Arg.create.name -> FarmClass.createFarm(player).script.toPlayer(player)
             Arg.invite.name -> {
                 if (args.size != 2) return "$prefix §c/is ${args.first()} <PlayerName>".toPlayer(player).setFalse()
@@ -46,7 +42,6 @@ object FarmCMD : CommandExecutor, TabCompleter {
                 if (args.size == 1) return FarmControl.getMembers(player).setFalse()
                 FarmControl.getMembers(player, args[1])
             }
-            Arg.chat.name -> PlayerClass.toggleChat(player)
             Arg.givehost.name -> {
                 if (args.size != 2) return "$prefix §c/is ${args.first()} <PlayerName>".toPlayer(player).setFalse()
                 FarmControl.giveHost(player, args.last()).script.toPlayer(player)

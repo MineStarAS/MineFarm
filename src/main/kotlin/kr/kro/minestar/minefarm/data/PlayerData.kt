@@ -18,14 +18,12 @@ class PlayerData {
     private val lastJoinTime: String?
 
     private var farmCode: String?
-    private var farmChat: Boolean
 
     fun name() = name
     fun uuid() = uuid
     fun firstJoinTime() = firstJoinTime
     fun lastJoinTime() = lastJoinTime
     fun farmCode() = farmCode
-    fun farmChat() = farmChat
 
     constructor(player: Player) {
         val file = File("${pl.dataFolder}/player", "${player.uniqueId}.player")
@@ -50,7 +48,6 @@ class PlayerData {
         lastJoinTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
         data["LAST_JOIN_TIME"] = lastJoinTime
         farmCode = data.getString("FARM_CODE")
-        farmChat = data.getBoolean("FARM_CHAT")
         data.save(file)
         PlayerClass.playerData[player] = this
         farmCheck(player)
@@ -65,7 +62,6 @@ class PlayerData {
         firstJoinTime = data.getString("FIRST_JOIN_TIME")
         lastJoinTime = data.getString("LAST_JOIN_TIME")
         farmCode = data.getString("FARM_CODE")
-        farmChat = data.getBoolean("FARM_CHAT")
         data.save(file)
     }
 
@@ -82,14 +78,5 @@ class PlayerData {
         farmCode = code
         data["FARM_CODE"] = code
         data.save(file)
-    }
-
-    fun toggleChat(): Boolean {
-        val file = File("${pl.dataFolder}/player", "$uuid.player")
-        val data = YamlConfiguration.loadConfiguration(file)
-        data["FARM_CHAT"] = !farmChat
-        farmChat = !farmChat
-        data.save(file)
-        return farmChat
     }
 }

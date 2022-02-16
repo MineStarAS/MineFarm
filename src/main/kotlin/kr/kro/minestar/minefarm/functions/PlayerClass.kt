@@ -21,11 +21,5 @@ object PlayerClass {
         return player.teleport(farm!!.spawn())
     }
 
-    fun toggleChat(player: Player) {
-        val playerData = playerData[player] ?: return kickNullPlayerData(player)
-        return if (playerData.toggleChat()) "$prefix §a섬 채팅을 시작하였습니다.".toPlayer(player)
-        else "$prefix §c섬 채팅을 종료하였습니다.".toPlayer(player)
-    }
-
     fun kickNullPlayerData(player: Player) = player.kickPlayer("$prefix 플레이어 데이터에 문제가 생겨 재접속 해주시기 바랍니다.")
 }
