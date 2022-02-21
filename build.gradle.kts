@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.6.0"
+    kotlin("jvm") version "1.6.10"
     id("com.github.johnrengelman.shadow") version "7.1.0"
     id("org.jetbrains.dokka") version "1.5.0"
     `maven-publish`
@@ -7,7 +7,7 @@ plugins {
 
 group = "kr.kro.minestar"
 version = "1.0.0"
-val plugins = File("C:\\Users\\MineStar\\Desktop\\MC Server folder\\MCserver 1.17.1 - MineFarm\\plugins")
+val plugins = File("C:\\Users\\MineStar\\Desktop\\MC Server folder\\MCserver 1.18.1 - MineFarm\\plugins")
 
 repositories {
     mavenCentral()
@@ -20,9 +20,9 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    compileOnly(kotlin("stdlib"))
     compileOnly("net.kyori:adventure-api:4.9.3")
-    compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT")
 //    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.7-SNAPSHOT")
 
     //project_TL
@@ -33,9 +33,13 @@ dependencies {
     //other
 }
 
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "16"
+        kotlinOptions.jvmTarget = "17"
     }
     javadoc {
         options.encoding = "UTF-8"

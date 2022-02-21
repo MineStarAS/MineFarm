@@ -8,14 +8,18 @@ import kr.kro.minestar.utility.bool.BooleanScript
 import kr.kro.minestar.utility.bool.addScript
 import kr.kro.minestar.utility.location.isInsideToCube
 import kr.kro.minestar.utility.string.toPlayer
+import kr.kro.minestar.utility.string.toServer
 import org.bukkit.GameMode
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.player.PlayerInteractEvent
 
 object LockEvent : Listener {
 
@@ -25,7 +29,7 @@ object LockEvent : Listener {
         val radius = FarmClass.radius
         if (!center.isInsideToCube(loc, radius)) return false.addScript("$prefix §c자신의 섬에서만 가능합니다.")
         if (!farm.member().contains(player.uniqueId.toString())) return false.addScript("$prefix §c자신의 섬에서만 가능합니다.")
-        return true.addScript("")
+        return true.addScript()
     }
 
     @EventHandler
@@ -44,19 +48,19 @@ object LockEvent : Listener {
     fun blockBreakLock(e: BlockBreakEvent) {
         if (e.isCancelled) return
         if (e.block.world != farmWorld) return
-        val player: Player = e.player
+        val player = e.player
         if (player.isOp && player.gameMode == GameMode.CREATIVE) return
         val lock = isFarmMember(player, e.block.location)
         if (!lock.boolean) {
             e.isCancelled = true
-//            lock.script.toPlayer(player)
+            lock.script.toPlayer(player)
         }
     }
 
     @EventHandler
     fun blockPlaceLock(e: BlockPlaceEvent) {
         if (e.isCancelled) return
-        val player: Player = e.player
+        val player = e.player
         if (player.isOp && player.gameMode == GameMode.CREATIVE) return
         if (e.block.world != farmWorld) return
         val block = e.block
@@ -67,44 +71,56 @@ object LockEvent : Listener {
         val lock = isFarmMember(player, e.block.location)
         if (!lock.boolean) {
             e.isCancelled = true
-//            lock.script.toPlayer(player)
+            lock.script.toPlayer(player)
         }
     }
 
-//    @EventHandler
-//    fun interactBlockLock(e: PlayerInteractEvent) {
-//        if (e.isCancelled) return
-//        val p: Player = e.player
-//        if (p.isOp && p.gameMode == GameMode.CREATIVE) return
-//
-//        val block = e.clickedBlock
-//        val banBlock = listOf(Material.ANVIL, Material.GRINDSTONE)
-//        val banItem = listOf(Material.LAVA_BUCKET)
-//        when (e.action) {
-//            Action.LEFT_CLICK_BLOCK,
-//            Action.RIGHT_CLICK_BLOCK -> {
-//                if (banBlock.contains(block!!.type)) {
-//                    e.isCancelled = true
-//                    return "$prefix §c사용 금지 아이템 입니다.".toPlayer(p)
-//                }
-//                if (banItem.contains(p.inventory.itemInMainHand.type)) {
-//                    e.isCancelled = true
-//                    return "$prefix §c사용 금지 아이템 입니다.".toPlayer(p)
-//                }
-//                val loc: Location = e.interactionPoint ?: return
-//                val code = FarmClass.getCode(loc)
-//                val farm = FarmClass.getFarm(code) ?: return
-//                for (lock in Lock.values()) if (block.type.toString().contains("$lock")) if (!farm.getLock(lock)) return
-//                e.isCancelled = true
-//                return
-//            }
-//            Action.PHYSICAL -> {
-//                val loc: Location = e.interactionPoint ?: return
-//                val code = FarmClass.getCode(loc)
-//                val farm = FarmClass.getFarm(code) ?: return
-//                if (block!!.type.toString().contains("PRESSURE_PLATE")) if (farm.getLock(Lock.PRESSURE_PLATE)) return
-//                e.isCancelled = true
-//            }
-//        }
-//    }
+    @EventHandler
+    fun interactBlockLock(e: PlayerInteractEvent) {
+        if (e.isCancelled) return
+        if (e.clickedBlock?.world != farmWorld) return
+        val player: Player = e.player
+        if (player.isOp && player.gameMode == GameMode.CREATIVE) return
+
+        val block = e.clickedBlock ?: return
+        val banItem = listOf(Material.LAVA_BUCKET)
+        val chest = listOf(Material.CHEST, Material.TRAPPED_CHEST, Material.ENDER_CHEST, Material.BARREL)
+        when (e.action) {
+            Action.LEFT_CLICK_BLOCK,
+            Action.RIGHT_CLICK_BLOCK -> {
+                if (banItem.contains(player.inventory.itemInMainHand.type)) {
+                    e.isCancelled = true
+                    return "$prefix §c사용 금지 아이템 입니다.".toPlayer(player)
+                }
+
+                val loc: Location = e.interactionPoint ?: return
+                if (chest.contains(block.type)){
+                    val lock = isFarmMember(player,loc)
+                    if (!lock.boolean) {
+                        lock.script.toPlayer(player)
+                        e.isCancelled = true
+                    }
+                    return
+                }
+                val code = FarmClass.getCode(loc)
+                val farm = FarmClass.getFarm(code)
+                if (farm == null) {
+                    e.isCancelled = true
+                    return
+                }
+                for (lock in Lock.values()) if (block.type.toString().contains("$lock")) if (!farm.getLock(lock)) return
+            }
+            Action.PHYSICAL -> {
+                val loc: Location = block.location
+                val code = FarmClass.getCode(loc)
+                val farm = FarmClass.getFarm(code)
+                if (farm == null) {
+                    e.isCancelled = true
+                    return
+                }
+                if (block.type.toString().contains("PRESSURE_PLATE")) if (farm.getLock(Lock.PRESSURE_PLATE)) return
+                e.isCancelled = true
+            }
+        }
+    }
 }

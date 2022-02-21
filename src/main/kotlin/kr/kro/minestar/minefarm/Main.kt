@@ -21,10 +21,8 @@ class Main : JavaPlugin() {
         logger.info("$prefix §aEnable")
         getCommand("is")?.setExecutor(FarmCMD)
         saveResource("config.yml", false)
-        saveResource("default.schem", false)
         EnableClass.enable()
-
-        for (world in Bukkit.getWorlds()) WorldClass.worldSetting(world)
+        WorldClass.worldSetting(farmWorld)
     }
 
     override fun onDisable() {

@@ -11,6 +11,7 @@ import kr.kro.minestar.utility.bool.addScript
 import kr.kro.minestar.utility.location.Axis
 import kr.kro.minestar.utility.location.addAxis
 import kr.kro.minestar.utility.string.remove
+import kr.kro.minestar.utility.string.toServer
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
@@ -71,7 +72,7 @@ object FarmClass {
         val split = code.remove(".farm").split(',')
         val c1 = split[0].toInt() * offset.toDouble()
         val c2 = split[1].toInt() * offset.toDouble()
-        val loc = Location(farmWorld, c1, 60.0, c2)
+        val loc = Location(farmWorld, c1, 40.0, c2)
         data["CENTER"] = loc
         data["SPAWN"] = loc.clone().addAxis(Axis.Y, 1)
         data["RADIUS"] = pl.config.getInt("farmRadius")
@@ -152,8 +153,17 @@ object FarmClass {
     fun getCode(loc: Location): String {
         if (loc.world != farmWorld) return ""
 
-        val x = loc.blockX
-        val z = loc.blockZ
+        var x = loc.blockX
+        var z = loc.blockZ
+
+        if (x in -53..53 && z in -53..53) return "0,0.farm"
+
+        if (x > 0) x += offset / 2
+        else x -= offset / 2
+
+        if (z > 0) z += offset / 2
+        else z -= offset / 2
+
         val countX = x / offset
         val countZ = z / offset
 
